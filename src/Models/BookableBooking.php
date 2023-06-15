@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Rinvex\Support\Traits\ValidatingTrait;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Spatie\SchemalessAttributes\SchemalessAttributes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 abstract class BookableBooking extends Model
 {
+    use HasFactory;
     use ValidatingTrait;
 
     /**
@@ -68,22 +70,7 @@ abstract class BookableBooking extends Model
      *
      * @var array
      */
-    protected $rules = [
-        'bookable_id' => 'required|integer',
-        'bookable_type' => 'required|string|strip_tags|max:150',
-        'customer_id' => 'required|integer',
-        'customer_type' => 'required|string|strip_tags|max:150',
-        'starts_at' => 'required|date',
-        'ends_at' => 'required|date',
-        'price' => 'required|numeric',
-        'quantity' => 'required|integer',
-        'total_paid' => 'required|numeric',
-        'currency' => 'required|alpha|size:3',
-        'formula' => 'nullable|array',
-        'canceled_at' => 'nullable|date',
-        'options' => 'nullable|array',
-        'notes' => 'nullable|string|strip_tags|max:32768',
-    ];
+    protected $rules = [];
 
     /**
      * Whether the model should throw a
@@ -100,9 +87,25 @@ abstract class BookableBooking extends Model
      */
     public function __construct(array $attributes = [])
     {
-        parent::__construct($attributes);
-
         $this->setTable(config('rinvex.bookings.tables.bookable_bookings'));
+        $this->mergeRules([
+            'bookable_id' => 'required|integer',
+            'bookable_type' => 'required|string|strip_tags|max:150',
+            'customer_id' => 'required|integer',
+            'customer_type' => 'required|string|strip_tags|max:150',
+            'starts_at' => 'required|date',
+            'ends_at' => 'required|date',
+            'price' => 'required|numeric',
+            'quantity' => 'required|integer',
+            'total_paid' => 'required|numeric',
+            'currency' => 'required|alpha|size:3',
+            'formula' => 'nullable|array',
+            'canceled_at' => 'nullable|date',
+            'options' => 'nullable|array',
+            'notes' => 'nullable|string|strip_tags|max:32768',
+        ]);
+
+        parent::__construct($attributes);
     }
 
     /**
@@ -114,14 +117,14 @@ abstract class BookableBooking extends Model
     {
         parent::boot();
 
-        static::validating(function (self $bookableAvailability) {
-            [$price, $formula, $currency] = is_null($bookableAvailability->price)
-                ? $bookableAvailability->calculatePrice($bookableAvailability->bookable, $bookableAvailability->starts_at, $bookableAvailability->ends_at) : [$bookableAvailability->price, $bookableAvailability->formula, $bookableAvailability->currency];
-
-            $bookableAvailability->currency = $currency;
-            $bookableAvailability->formula = $formula;
-            $bookableAvailability->price = $price;
-        });
+        //static::validating(function (self $bookableAvailability) {
+        //    $calculatedPrice = is_null($bookableAvailability->price)
+        //        ? $bookableAvailability->calculatePrice($bookableAvailability->bookable, $bookableAvailability->starts_at, $bookableAvailability->ends_at) : [$bookableAvailability->price, $bookableAvailability->formula, $bookableAvailability->currency];
+        //
+        //    $bookableAvailability->currency = $calculatedPrice['currency'];
+        //    $bookableAvailability->formula = $calculatedPrice['formula'];
+        //    $bookableAvailability->price = $calculatedPrice['price'];
+        //});
     }
 
     /**
